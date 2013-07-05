@@ -14,20 +14,11 @@ class SqlExecutorTest extends \PHPUnit_Framework_TestCase {
      */
     protected $object;
 
-    protected $pdo;
-
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
     protected function setUp() {
-        $this->object = new SqlExecutor;
-        
-        if (is_null($this->pdo)) {
-            $this->pdo = new \PDO("sqlite::memory:");
-            $this->pdo->exec(file_get_contents("./sql/create.sql"));
-            $this->pdo->exec(file_get_contents("./sql/insert.sql"));
-        }
     }
 
     /**
@@ -43,8 +34,6 @@ class SqlExecutorTest extends \PHPUnit_Framework_TestCase {
      * @todo   Implement testFrom().
      */
     public function testFrom() {
-        $stmt = $this->pdo->query("select * from user");
-        print_r($stmt->fetch());
     }
 
 }
