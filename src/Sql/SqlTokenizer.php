@@ -13,14 +13,15 @@ namespace SqlExecutor\Sql;
  * @author p
  */
 class SqlTokenizer {
+
 	const SQL = 1;
 	const COMMENT = 2;
 	const EL = 3;
 	const BIND_VARIABLE = 4;
 	const EOF = 99;
 
-	private $sql = '';
-	private $token = '';
+	private $sql = null;
+	private $token = null;
 	private $tokenType = self::SQL;
 	private $nextTokenType = self::SQL;
 	private $position = 0;
@@ -31,7 +32,7 @@ class SqlTokenizer {
 
 	public function next() {
 		if ($this->position >= mb_strlen($this->sql)) {
-			$this->token = '';
+			$this->token = null;
 			$this->tokenType = self::EOF;
 			$this->nextTokenType = self::EOF;
 			return $this->tokenType;
@@ -44,24 +45,42 @@ class SqlTokenizer {
 			$this->parseComment();
 			break;
 		case self::EL:
-			//parseElse();
+			$this->parseElse();
 			break;
 		case self::BIND_VARIABLE:
 			//parseBindVariable();
 			break;
 		default:
-			//parseEof();
+			parseEof();
 			break;
 		}
 		return $this->tokenType;
 	}
 
 	protected function parseSql() {
-		$commentStartPos = mb_strpos($this->sql, '/*');
+		$commentStartPos = mb_strpos($this->sql, '/*', $this->position);
 		if ($commentStartPos === false) {
 			$commentStartPos = -1;
 		}
-		$nextCommentStartPos = $this->calculateNextStartPos($commentStartPos);
+        $elseCommentStartPos = -1;
+        $elseCommentLength = -1;
+        $elseCommentSearchCurrentPosition = $this->position;
+        while (true) { 
+            $lineCommentStartPos = mb_strpos($this->sql, '--', $elseCommentSearchCurrentPosition);
+            if ($lineCommentStartPos === false) {
+                break;
+            }
+            $skipPos = $this->skipWhitespaceFromCurrentPos($lineCommentStartPos + 2);
+            if ($skipPos + 4 < mb_strlen($this->sql) 
+					&& "ELSE" === mb_substr($this->sql, $skipPos, 4)) {
+                $elseCommentStartPos = $lineCommentStartPos;
+                $elseCommentLength = $skipPos + 4 - $lineCommentStartPos;
+                break;
+            }
+            $elseCommentSearchCurrentPosition = $skipPos;
+        }
+
+		$nextCommentStartPos = $this->calculateNextStartPos($commentStartPos, $elseCommentStartPos);
 		if ($nextCommentStartPos < 0) {
 			$this->token = mb_substr($this->sql, $this->position);
 			$this->nextTokenType = self::EOF;
@@ -69,34 +88,71 @@ class SqlTokenizer {
 			$this->tokenType = self::SQL;
 			return;
 		}
-		$this->token = mb_substr($this->sql, $nextCommentStartPos);
+		$this->token = mb_substr($this->sql, $this->position, $nextCommentStartPos - $this->position);
 		$this->tokenType = self::SQL;
-		$needNext = $commentStartPos === $nextCommentStartPos ? true : false;
+		$needNext = $this->position === $nextCommentStartPos ? true : false;
 		if ($commentStartPos === $nextCommentStartPos) {
 			$this->nextTokenType = self::COMMENT;
 			$this->position = $commentStartPos + 2;
+		} else if ($nextCommentStartPos === $elseCommentStartPos) {
+			$this->nextTokenType = self::EL;
+			$this->position = $elseCommentStartPos + $elseCommentLength;
 		}
 		if ($needNext) {
 			$this->next();
 		}
 	}
 
-	private function calculateNextStartPos($commentStartPos) {
+	private function calculateNextStartPos($commentStartPos, $elseCommentStartPos) {
 		$nextStartPos = -1;
 		if ($commentStartPos >= 0) {
 			$nextStartPos = $commentStartPos;
 		}
-
+        if ($elseCommentStartPos >= 0 && ($nextStartPos < 0 || $elseCommentStartPos < $nextStartPos)) {
+            $nextStartPos = $elseCommentStartPos;
+        }
 		return $nextStartPos;
 	}
 
 	protected function parseComment() {
-		$commentEndPos = mb_strpos($this->sql, '*/');
+		$commentEndPos = mb_strpos($this->sql, '*/', $this->position);
 		$this->token = mb_substr($this->sql, $this->position, $commentEndPos - $this->position);
 		$this->nextTokenType = self::SQL;
-		$this->position = $this->position + 2;
+		$this->position = $commentEndPos + 2;
 		$this->tokenType = self::COMMENT;
 	}
+
+	protected function parseElse() {
+        $this->token = null;
+        $this->nextTokenType = self::SQL;
+        $this->tokenType = self::EL;
+	}
+
+	protected function parseEof() {
+		$this->token = null;
+		$this->tokenType = self::EOF;
+		$this->nextTokenType = self::EOF;
+	}
+
+	public function skipWhitespace() {
+		$index = $this->skipWhitespaceFromCurrentPos($this->position);
+		$this->token = mb_substr($this->sql, $this->position, $index - $this->position);
+		$this->position = $index;
+		return $this->token;
+	}
+	protected function skipWhitespaceFromCurrentPos($position) {
+		$index = mb_strlen($this->sql);
+		$sqlArray = str_split($this->sql);
+        for ($i = $position; $i < mb_strlen($this->sql); ++$i) {
+            $c = $sqlArray[$i];
+            if ($c !== ' ') {
+                $index = $i;
+                break;
+            }
+        }
+		return $index;
+	}
+
 	public function getToken() {
 		return $this->token;
 	}
@@ -112,7 +168,6 @@ class SqlTokenizer {
 	public function getPosition() {
 		return $this->position;
 	}
-
 
 }
 

@@ -36,7 +36,7 @@ class SqlTokenizerTest extends \PHPUnit_Framework_TestCase {
 		$tn = new SqlTokenizer('');
 		$result = $tn->next();
 		$this->assertSame(SqlTokenizer::EOF, $result);
-		$this->assertSame('', $tn->getToken());
+		$this->assertSame(null, $tn->getToken());
 		$this->assertSame(SqlTokenizer::EOF, $tn->getNextTokenType());
    }
    
@@ -51,4 +51,64 @@ SQL;
 		$this->assertSame(SqlTokenizer::EOF, $tn->getNextTokenType());
 	}
 
+   public function testNext3() {
+		$sql = <<<SQL
+SELECT * from user /*BEGIN*/ where 1=1 /*END*/;
+SQL;
+		$tn = new SqlTokenizer($sql);
+		$result = $tn->next();
+		$this->assertSame(SqlTokenizer::SQL, $result);
+		$this->assertSame('SELECT * from user ', $tn->getToken());
+		$this->assertSame(SqlTokenizer::COMMENT, $tn->getNextTokenType());
+	}
+
+   public function testNext4() {
+		$sql = <<<SQL
+SELECT * from user /*BEGIN*/ where 1=1 /*END*/;
+SQL;
+		$tn = new SqlTokenizer($sql);
+		$tn->next();
+		$result = $tn->next();
+		$this->assertSame(SqlTokenizer::COMMENT, $result);
+		$this->assertSame('BEGIN', $tn->getToken());
+		$this->assertSame(SqlTokenizer::SQL, $tn->getNextTokenType());
+	}
+
+   public function testNext5() {
+		$sql = '/*IF pmb.isPaging()*/';
+		$sql .= 'select name from MEMBER';
+		$sql .= '-- ELSE select count(*)';
+		$sql .= '/*BEGIN*/';
+		$sql .= ' where';
+		$sql .= ' /*IF pmb.memberId != null*/member.MEMBER_ID = 3/*END*/';
+		$sql .= ' /*IF pmb.memberName != null*/and member.MEMBER_NAME = \'TEST\'/*END*/';
+		$sql .= '/*END*/';
+		$tn = new SqlTokenizer($sql);
+		$tn->next();
+		$this->assertSame('IF pmb.isPaging()', $tn->getToken());
+		$tn->next();
+		$this->assertSame('select name from MEMBER', $tn->getToken());
+		$tn->next();
+		$this->assertSame(null, $tn->getToken());
+		$tn->next();
+		$this->assertSame(' select count(*)', $tn->getToken());
+		$tn->next();
+		$this->assertSame('BEGIN', $tn->getToken());
+		$tn->next();
+		$this->assertSame(' where ', $tn->getToken());
+		$tn->next();
+		$this->assertSame('IF pmb.memberId != null', $tn->getToken());
+		$tn->next();
+		$this->assertSame('member.MEMBER_ID = 3', $tn->getToken());
+		$tn->next();
+		$this->assertSame('END', $tn->getToken());
+		$tn->next();
+		$this->assertSame(' ', $tn->getToken());
+		$tn->next();
+		$this->assertSame('IF pmb.memberName != null', $tn->getToken());
+		$tn->next();
+		$this->assertSame('and member.MEMBER_NAME = \'TEST\'', $tn->getToken());
+		$tn->next();
+		$this->assertSame('END', $tn->getToken());
+	}
 }
