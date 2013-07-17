@@ -169,5 +169,13 @@ class SqlTokenizer {
 		return $this->position;
 	}
 
+	public function getBefore() {
+		return mb_substr($this->sql, 0, $this->position);
+	}
+
+	public function getAfter() {
+		return mb_substr($this->sql, $this->position);
+	}
+
 }
 

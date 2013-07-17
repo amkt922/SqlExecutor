@@ -3,6 +3,8 @@
 namespace SqlExecutor\Sql\Node;
 
 use SqlExecutor\Sql\Node\AbstractNode;
+use SqlExecutor\Sql\Node\SqlConnectorAdjustable;
+
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -11,14 +13,24 @@ use SqlExecutor\Sql\Node\AbstractNode;
 /**
  * Description of RootNode
  *
- * @author p
+ * @author amkt
  */
-class BeginNode extends AbstractNode {
+class BeginNode extends AbstractNode implements SqlConnectorAdjustable {
     
     const MARK = 'BEGIN';
+	private $nested = false;
     
     public function __construct() {
         ;
     }
+	
+    public function __construct($nested) {
+		$this->nested = $nested;
+    }
+
+	public function isNested() {
+		return $this->nested;
+	}
+		
 }
 

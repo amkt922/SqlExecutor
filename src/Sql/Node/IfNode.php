@@ -3,6 +3,8 @@
 namespace SqlExecutor\Sql\Node;
 
 use SqlExecutor\Sql\Node\AbstractNode;
+use SqlExecutor\Sql\Node\SqlConnectorAdjustable;
+
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
@@ -13,13 +15,13 @@ use SqlExecutor\Sql\Node\AbstractNode;
  *
  * @author p
  */
-class IfNode extends AbstractNode {
+class IfNode extends AbstractNode implements SqlConnectorAdjustable {
     
     const MARK = 'IF';
     
-    protected $condition = '';
+    protected $condition = null;
     
-    protected $sql = '';
+    protected $sql = null;
     
     public function __construct() {
         ;

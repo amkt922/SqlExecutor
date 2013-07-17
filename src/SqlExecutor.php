@@ -1,7 +1,12 @@
 <?php
+
 namespace SqlExecutor;
 
+require_once "autoload.php";
+
+
 use SqlExecutor\Db\DbAccessor;
+
 
 /*
  * To change this template, choose Tools | Templates

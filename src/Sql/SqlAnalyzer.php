@@ -61,8 +61,72 @@ class SqlAnalyzer {
 
 	protected function parseSql() {
 		$node = $this->nodeStack[(count($this->nodeStack) - 1)];	
-		$node->addChild(new Node\SqlNode($this->tokenizer->getToken()));	
+		$sql = $this->tokenizer->getToken();
+		if ($this->isConnectorAdjustable($node)) {
+			$this->processSqlConnectorAdjustable($node, $sql);		
+		}
 	}
+	
+	protected function processSqlConnectorAdjustable($node, $sql) {
+		$st = new SqlTokenizer($sql);
+		$st->skipWhitespace();
+		$skippedToken = $st->skipToken();
+		$st->skipWhitespace();
+
+		if ($this->processSqlConnectorCondition($node, $sql, $skippedToken)) {
+			return;
+		}
+
+		$node->addChild($this->createSqlNode($node, $sql));	
+	}
+
+	protected function processSqlConnectorCondition($node, $st, $skippedToken) {
+		if ($skippedToken === 'AND' || $skippedToken === 'and'
+				|| $skippedToken === 'OR' || $skippedToken === 'or') {
+			$this->createSqlConnectorNode($node, $st->getBefore(), $st->getAfter());			
+			return true;
+		}	
+		return false;
+	}
+
+	protected function createSqlConnectorNode($node, $connector, $sql) {
+		if ($this->isNestedBegin($node)) {
+			return Node\SqlConnectorNode::createSqlConnectorNodeAsIndependent($connector, $sql);
+		} else {
+			return Node\SqlConnectorNode::createSqlConnectorNode($connector, $sql);
+		}
+	}
+
+	protected function createSqlNode($node, $sql) {
+		if ($this->isNestedBegin($node)) {
+			return Node\SqlNode::createSqlConnectorNodeAsIndependent($sql);
+		} else {
+			return Node\SqlNode::createSqlConnectorNode($sql);
+		}
+	}
+	
+    protected function isNestedBegin($node) {
+        if (!($node instanceof BeginNode)) {
+            return false;
+        }
+        return $node->isNested();
+    }
+
+	protected function isConnectorAdjustable($node) {
+		if ($node->getChildSize() > 0) {
+			return false;
+		}
+
+        return ($node instanceof SqlConnectorAdjustable) 
+					&& !$this->isTopBegin($node);
+	}
+
+    protected function isTopBegin($node) {
+        if (!($node instanceof BeginNode)) {
+            return false;
+        }
+        return !$node->isNested();
+    }
 
 	protected function parseComment() {
 	//	

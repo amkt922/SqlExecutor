@@ -15,10 +15,27 @@ use SqlExecutor\Sql\Node\AbstractNode;
  */
 class SqlNode extends AbstractNode {
    
-	private $sql = '';
+	private $sql = null;
+	private $independent = false;
 
 	public function __construct($sql = '') {
 		$this->sql = $sql;
     }
+
+	public static function createSqlNode($sql) {
+		return new self($sql);	
+
+	}
+
+	public static function createSqlNodeAsIndependent($sql) {
+		$obj = new self($sql);	
+		$obj->asIndependent();
+		return $obj;
+	}
+
+	private function asIndependent() {
+		$this->independent = true;
+		return $this;
+	}
 }
 
