@@ -30,9 +30,10 @@ class SqlAnalyzerTest extends \PHPUnit_Framework_TestCase {
   
    public function testAnalyze() {
 		$sql = <<<SQL
-SELECT * from user;
+SELECT * from user /*BEGIN*/ where /*IF a = 1*/ a = /*a*/1/*END*/ /*IF b = 'b'*/ and b = /*b*/'b'/*END*/ /*END*/
 SQL;
 		$an = new SqlAnalyzer($sql);
-		$an->analyze();
+		$node = $an->analyze();
+		print_r($node);
 	}
 }

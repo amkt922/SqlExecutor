@@ -17,14 +17,15 @@ use SqlExecutor\Sql\Node\SqlConnectorAdjustable;
  */
 class IfNode extends AbstractNode implements SqlConnectorAdjustable {
     
-    const MARK = 'IF';
+    const PREFIX = 'IF';
     
     protected $condition = null;
     
     protected $sql = null;
     
-    public function __construct() {
-        ;
+    public function __construct($condition, $sql) {
+		$this->condition = $condition;
+		$this->sql = $sql;
     }
 }
 

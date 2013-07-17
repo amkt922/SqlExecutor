@@ -134,6 +134,41 @@ class SqlTokenizer {
 		$this->nextTokenType = self::EOF;
 	}
 
+	public function skipToken() {
+		// todo extract date
+		$sqlArray = str_split($this->sql);
+		$firstChar = $sqlArray[$this->position];
+		$quote = $firstChar === '(' ? ')' : $firstChar;
+		$quoting = $quote === '\'' || $quote == ')';
+		$index = mb_strlen($this->sql);
+        for ($i = $quoting ? $this->position + 1 
+				: $this->position; $i < mb_strlen($this->sql); ++$i) {
+			$c = $sqlArray[$i];
+			if ($c === ' ') {
+				$index = $i;
+				break;
+			} else if ($c === '/' && $sqlArray[$i + 1] === '*') {
+				$index = $i;
+				break;
+			} else if ($c === '-' && $sqlArray[$i + 1] === '-') {
+				$index = $i;
+				break;
+			} else if ($quoting && $c === '\'') {
+				$index = $i;
+				break;
+			} else if ($quoting && $c === $quote) {
+				$index = $i;
+				break;
+			}
+
+		}
+		$this->token = mb_substr($this->sql, $this->position, $index - $this->position);
+		$this->tokenType = self::SQL;
+		$this->nextTokenType = self::SQL;
+		$this->position = $index;
+		return $this->token;
+	}
+
 	public function skipWhitespace() {
 		$index = $this->skipWhitespaceFromCurrentPos($this->position);
 		$this->token = mb_substr($this->sql, $this->position, $index - $this->position);

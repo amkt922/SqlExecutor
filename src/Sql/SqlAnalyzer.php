@@ -18,11 +18,13 @@ use SqlExecutor\Sql\Node\RootNode;
  */
 class SqlAnalyzer {
     
-    private $sql = '';
+    private $sql = null;
     
     private $tokenizer = null;
     
     private $nodeStack = array();
+
+	private $inBeginScope = false;
 
     /**
      * Constructor
@@ -35,7 +37,7 @@ class SqlAnalyzer {
     
     public function analyze() {
     	array_push($this->nodeStack, $this->createRootNode());
-        while (SqlTokenizer.EOF != $this->tokenizer->next()) {
+        while (SqlTokenizer::EOF != $this->tokenizer->next()) {
             $this->parseToken();
         }
         return array_pop($this->nodeStack);
@@ -48,10 +50,10 @@ class SqlAnalyzer {
 	protected function parseToken() {
         switch ($this->tokenizer->getTokenType()) {
         case SqlTokenizer::SQL:
-            parseSql();
+            $this->parseSql();
             break;
         case SqlTokenizer::COMMENT:
-            parseComment();
+            $this->parseComment();
             break;
         case SqlTokenizer::EL:
             //parseElse();
@@ -60,10 +62,12 @@ class SqlAnalyzer {
 	}
 
 	protected function parseSql() {
-		$node = $this->nodeStack[(count($this->nodeStack) - 1)];	
+		$node = $this->peekNodeStack();
 		$sql = $this->tokenizer->getToken();
 		if ($this->isConnectorAdjustable($node)) {
 			$this->processSqlConnectorAdjustable($node, $sql);		
+		} else {
+			$node->addChild($this->createSqlNode($node, $sql));
 		}
 	}
 	
@@ -73,7 +77,7 @@ class SqlAnalyzer {
 		$skippedToken = $st->skipToken();
 		$st->skipWhitespace();
 
-		if ($this->processSqlConnectorCondition($node, $sql, $skippedToken)) {
+		if ($this->processSqlConnectorCondition($node, $st, $skippedToken)) {
 			return;
 		}
 
@@ -83,7 +87,7 @@ class SqlAnalyzer {
 	protected function processSqlConnectorCondition($node, $st, $skippedToken) {
 		if ($skippedToken === 'AND' || $skippedToken === 'and'
 				|| $skippedToken === 'OR' || $skippedToken === 'or') {
-			$this->createSqlConnectorNode($node, $st->getBefore(), $st->getAfter());			
+			$node->addChild($this->createSqlConnectorNode($node, $st->getBefore(), $st->getAfter()));		
 			return true;
 		}	
 		return false;
@@ -99,9 +103,9 @@ class SqlAnalyzer {
 
 	protected function createSqlNode($node, $sql) {
 		if ($this->isNestedBegin($node)) {
-			return Node\SqlNode::createSqlConnectorNodeAsIndependent($sql);
+			return Node\SqlNode::createSqlNodeAsIndependent($sql);
 		} else {
-			return Node\SqlNode::createSqlConnectorNode($sql);
+			return Node\SqlNode::createSqlNode($sql);
 		}
 	}
 	
@@ -117,19 +121,83 @@ class SqlAnalyzer {
 			return false;
 		}
 
-        return ($node instanceof SqlConnectorAdjustable) 
+        return ($node instanceof Node\SqlConnectorAdjustable) 
 					&& !$this->isTopBegin($node);
 	}
 
     protected function isTopBegin($node) {
-        if (!($node instanceof BeginNode)) {
+        if (!($node instanceof Node\BeginNode)) {
             return false;
         }
         return !$node->isNested();
     }
 
 	protected function parseComment() {
-	//	
+		$token = $this->tokenizer->getToken();
+		if ($this->isBeginComment($token)) {
+			$this->parseBegin();
+		} else if ($this->isIfComment($token)) {
+			$this->parseIf();
+		} else if ($this->isEndComment($token)) {
+			return;
+		} else {
+			$this->parseCommentVariable();
+		}
 	}
+
+	protected function isBeginComment($comment) {
+		return Node\BeginNode::MARK === $comment;
+	}
+
+	protected function parseBegin() {
+		$beginNode = new Node\BeginNode();
+		$this->inBeginScope = true;
+		$this->peekNodeStack()->addChild($beginNode);
+		array_push($this->nodeStack, $beginNode);
+		$this->parseEnd();
+		$this->inBeginScope = false;
+	}
+
+	protected function isIfComment($comment) {
+		return mb_strpos($comment, Node\IfNode::PREFIX, 0) === 0;
+	}
+
+	protected function parseIf() {
+        $comment = $this->tokenizer->getToken();
+        $condition = trim(mb_substr($comment, mb_strlen(Node\IfNode::PREFIX)));
+        $ifNode = new Node\IfNode($condition, $this->sql);
+        $this->peekNodeStack()->addChild($ifNode);
+        array_push($this->nodeStack, $ifNode);
+        $this->parseEnd();
+	}
+
+	protected function isEndComment($comment) {
+		return 'END' === $comment;
+	}
+
+	protected function parseEnd() {
+        $commentType = SqlTokenizer::COMMENT;
+        while (SqlTokenizer::EOF != $this->tokenizer->next()) {
+            if ($this->tokenizer->getTokenType() == $commentType 
+					&& $this->isEndComment($this->tokenizer->getToken())) {
+                array_pop($this->nodeStack);
+                return;
+            }
+            $this->parseToken();
+        }
+	}
+
+	private function peekNodeStack() {
+		$node = $this->nodeStack[(count($this->nodeStack) - 1)];	
+		return $node;
+	}
+
+	protected function parseCommentVariable() {
+		$token = $this->tokenizer->getToken();
+		$testValue = $this->tokenizer->skipToken();
+		$this->peekNodeStack()->addChild(new Node\VariableNode($token, $testValue));
+				
+	}
+
 }
 

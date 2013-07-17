@@ -15,10 +15,12 @@ use SqlExecutor\Sql\Node\AbstractNode;
  */
 class VariableNode extends AbstractNode {
     
-    protected $expression = '';
+    private $expression = null;
+    private $testValue = null;
     
-    public function __construct() {
-        ;
+    public function __construct($expression, $testValue) {
+		$this->expression = $expression;
+		$this->testValue = $testValue;
     }
 }
 

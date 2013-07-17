@@ -19,12 +19,8 @@ class BeginNode extends AbstractNode implements SqlConnectorAdjustable {
     
     const MARK = 'BEGIN';
 	private $nested = false;
-    
-    public function __construct() {
-        ;
-    }
-	
-    public function __construct($nested) {
+
+    public function __construct($nested = false) {
 		$this->nested = $nested;
     }
 
