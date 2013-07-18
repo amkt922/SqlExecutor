@@ -18,36 +18,22 @@
 namespace SqlExecutor\Sql\Node;
 
 use SqlExecutor\Sql\Node\AbstractNode;
-use SqlExecutor\Sql\Node\SqlConnectorAdjustable;
-use SqlExecutor\Sql\Node\IfCommentEvaluator;
+use SqlExecutor\Sql\Context\CommandContext;
 
 /**
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 
  */
-class IfNode extends ScopeNode implements SqlConnectorAdjustable {
+abstract class ScopeNode extends AbstractNode {
     
-    const PREFIX = 'IF';
-    
-    protected $condition = null;
-    
-    protected $sql = null;
-    
-    public function __construct($condition, $sql) {
-		$this->condition = $condition;
-		$this->sql = $sql;
+    public function __construct() {
     }
 
-	public function acceptContext($context) {
-		$evaluator = new IfCommentEvaluator($this->condition, $this->sql);
-		$result = $evaluator->evaluate();
-		if ($result) {
-			$this->processAcceptingChilden($context);
-			$context->setEnable(true);
-		} else if (false) {
-			// todo else node
-		} else {
-			$context->setEnable(false);
+	protected function processAcceptingChilden($context) {
+		$children = $this->getChildren();
+		foreach ($children as $child) {
+			$child->acceptContext($context);
 		}
 	}
+	
 }
 

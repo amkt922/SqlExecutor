@@ -28,6 +28,10 @@ abstract class AbstractNode {
         return $this->children[$index];
     } 
 
+	public function getChildren() {
+		return $this->children;
+	}
+
     public function getChildSize() {
         return count($this->children);
     }
@@ -35,5 +39,7 @@ abstract class AbstractNode {
     public function addChild($child) {
         array_push($this->children, $child);
     }
+
+	abstract public function acceptContext($context);
 }
 

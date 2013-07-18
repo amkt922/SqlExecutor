@@ -23,8 +23,15 @@ use SqlExecutor\Sql\Node\AbstractNode;
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 
  */
 class RootNode extends AbstractNode {
+
     public function __construct() {
-        ;
     }
+
+	public function acceptContext($context) {
+		$children = $this->getChildren();		
+		foreach ($children as $child) {
+			$child->acceptContext($context);
+		}
+	}
 }
 

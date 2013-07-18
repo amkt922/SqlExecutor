@@ -30,5 +30,16 @@ class VariableNode extends AbstractNode {
 		$this->expression = $expression;
 		$this->testValue = $testValue;
     }
+
+	public function acceptContext($context) {
+		if (mb_strpos($this->testValue, '\'') === 0 
+) {
+			$value = $context->getArg($this->expression);
+			$context->addSql('\'' . $value . '\'');
+		} else {
+			$value = $context->getArg($this->expression);
+			$context->addSql($value);
+		}
+	}
 }
 

@@ -56,5 +56,9 @@ class SqlConnectorNode extends AbstractNode {
 	public function getSql() {
 		return $this->sql;
 	}
+
+	public function acceptContext($context) {
+		$context->addSql($this->sql);		
+	}
 }
 

@@ -17,16 +17,11 @@
 
 namespace SqlExecutor\Sql\Node;
 
-use SqlExecutor\Sql\Node\AbstractNode;
-use SqlExecutor\Sql\Node\SqlConnectorAdjustable;
-use SqlExecutor\Sql\Node\IfCommentEvaluator;
-
 /**
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 
  */
-class IfNode extends ScopeNode implements SqlConnectorAdjustable {
+class IfCommentEvaluator {
     
-    const PREFIX = 'IF';
     
     protected $condition = null;
     
@@ -37,17 +32,8 @@ class IfNode extends ScopeNode implements SqlConnectorAdjustable {
 		$this->sql = $sql;
     }
 
-	public function acceptContext($context) {
-		$evaluator = new IfCommentEvaluator($this->condition, $this->sql);
-		$result = $evaluator->evaluate();
-		if ($result) {
-			$this->processAcceptingChilden($context);
-			$context->setEnable(true);
-		} else if (false) {
-			// todo else node
-		} else {
-			$context->setEnable(false);
-		}
+	public function evaluate() {
+		return eval($this->condition);	
 	}
 }
 

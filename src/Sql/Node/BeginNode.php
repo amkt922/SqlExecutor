@@ -19,11 +19,12 @@ namespace SqlExecutor\Sql\Node;
 
 use SqlExecutor\Sql\Node\AbstractNode;
 use SqlExecutor\Sql\Node\SqlConnectorAdjustable;
+use SqlExecutor\Sql\Context\CommandContext;
 
 /**
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 
  */
-class BeginNode extends AbstractNode implements SqlConnectorAdjustable {
+class BeginNode extends ScopeNode implements SqlConnectorAdjustable {
     
     const MARK = 'BEGIN';
 	private $nested = false;
@@ -35,6 +36,12 @@ class BeginNode extends AbstractNode implements SqlConnectorAdjustable {
 	public function isNested() {
 		return $this->nested;
 	}
+
+	public function acceptContext($context) {
+		$childContext = CommandContext::createCommandContextAsBeginChild($context); 
+		$this->processAcceptingChilden($childContext);
 		
+	}
+	
 }
 

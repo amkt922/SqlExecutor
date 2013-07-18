@@ -46,5 +46,9 @@ class SqlNode extends AbstractNode {
 		$this->independent = true;
 		return $this;
 	}
+
+	public function acceptContext($context) {
+		$context->addSql($this->sql);		
+	}
 }
 
