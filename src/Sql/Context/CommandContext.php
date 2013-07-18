@@ -31,10 +31,10 @@ class CommandContext {
 
 	private $isBeginChild = false;
 
-	private $enable = true;
+	private $enabled = true;
 
 	public static function createCommandContext($args) {
-		return new CommandContext($args);
+		return new CommandContext($args, null);
 	}
 
 	public static function createCommandContextAsBeginChild($context) {
@@ -45,10 +45,10 @@ class CommandContext {
 
 	private function __construct($args, $parent) {
 		$this->args = $args;
-		$this->enable = true;
+		$this->enabled = true;
 		if (!is_null($parent)) {
 			$this->parent = $parent;
-			$this->enable = false;
+			$this->enabled = false;
 		}
 	}
 
@@ -62,7 +62,7 @@ class CommandContext {
 
 	private function asBeginChild() {
 		$this->isBeginChild = true;
-		return self;
+		return $this;
 	}
 
 	public function getArgs() {
@@ -70,21 +70,26 @@ class CommandContext {
 	}
 
 	public function getArg($name) {
-		if (in_array($name, $this->args)) {
+		$name = trim($name);
+		if (array_key_exists($name, $this->args)) {
 			return $this->args[$name];
 		}
 		return null;
 	}
 
 	public function getArgType($name) {
-		if (in_array($name, $this->args)) {
+		if (array_key_exists($name, $this->args)) {
 			return gettype($this->args[$name]);
 		}
 		return null;
 	}
 
-	public function setEnable($enable) {
-		$this->enable = $enable;
+	public function setEnabled($enabled) {
+		$this->enabled = $enabled;
+	}
+
+	public function getEnabled() {
+		return $this->enabled;
 	}
 }
 

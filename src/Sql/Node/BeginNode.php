@@ -40,7 +40,9 @@ class BeginNode extends ScopeNode implements SqlConnectorAdjustable {
 	public function acceptContext($context) {
 		$childContext = CommandContext::createCommandContextAsBeginChild($context); 
 		$this->processAcceptingChilden($childContext);
-		
+		if ($childContext->getEnabled()) {
+			$context->addSql($childContext->getSql());	
+		}		
 	}
 	
 }

@@ -30,10 +30,13 @@ class SqlAnalyzerTest extends \PHPUnit_Framework_TestCase {
   
    public function testAnalyze() {
 		$sql = <<<SQL
-SELECT * from user /*BEGIN*/ where /*IF a = 1*/ a = /*a*/1/*END*/ /*IF b = 'b'*/ and b = /*b*/'b'/*END*/ /*END*/
+SELECT * from user /*BEGIN*/ where /*IF a = 3000*/ a = /*a*/1/*END*/ /*IF b = 100*/ and b = /*b*/b/*END*/ /*END*/
 SQL;
 		$an = new SqlAnalyzer($sql);
 		$node = $an->analyze();
-		print_r($node);
+		$param = array('a' => 300, 'b' => 100);
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
+		echo $context->getSql();
 	}
 }

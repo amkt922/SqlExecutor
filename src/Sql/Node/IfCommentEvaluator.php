@@ -23,17 +23,24 @@ namespace SqlExecutor\Sql\Node;
 class IfCommentEvaluator {
     
     
-    protected $condition = null;
+    private $condition = null;
     
-    protected $sql = null;
+    private $sql = null;
+
+	private $parameterFinder = null;
     
-    public function __construct($condition, $sql) {
+    public function __construct($condition, $sql, $parameterFinder) {
 		$this->condition = $condition;
 		$this->sql = $sql;
+		$this->parameterFinder = $parameterFinder;
     }
 
 	public function evaluate() {
-		return eval($this->condition);	
+		// todo AND, OR
+		$values = split('=', $this->condition);
+		$parameterValue = $this->parameterFinder->getParameter($values[0]);
+		$v = is_numeric(trim($values[1])) ? (int)trim($values[1]) : $values[1];
+		return $parameterValue === $v;
 	}
 }
 

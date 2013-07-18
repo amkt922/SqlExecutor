@@ -18,7 +18,6 @@
 namespace SqlExecutor\Sql\Node;
 
 use SqlExecutor\Sql\Node\AbstractNode;
-use SqlExecutor\Sql\Context\CommandContext;
 
 /**
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 

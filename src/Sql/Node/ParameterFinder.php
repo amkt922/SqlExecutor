@@ -17,35 +17,20 @@
 
 namespace SqlExecutor\Sql\Node;
 
-use SqlExecutor\Sql\Node\SqlConnectorAdjustable;
-use SqlExecutor\Sql\Node\IfCommentEvaluator;
-use SqlExecutor\Sql\Node\ParameterFinder;
-
 /**
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 
  */
-class IfNode extends ScopeNode implements SqlConnectorAdjustable {
+class ParameterFinder {
     
-    const PREFIX = 'IF';
+
+	private $context = null;
     
-    protected $condition = null;
-    
-    protected $sql = null;
-    
-    public function __construct($condition, $sql) {
-		$this->condition = $condition;
-		$this->sql = $sql;
+    public function __construct($context) {
+		$this->context = $context;
     }
 
-	public function acceptContext($context) {
-		$parameterFinder = new ParameterFinder($context);
-		$evaluator = new IfCommentEvaluator($this->condition, $this->sql, $parameterFinder);
-		$result = $evaluator->evaluate();
-		if ($result) {
-			$this->processAcceptingChilden($context);
-			$context->setEnabled(true);
-			// todo else node
-		}
+	public function getParameter($name) {
+		return $this->context->getArg($name);
 	}
 }
 

@@ -162,10 +162,10 @@ class SqlTokenizer {
 				$index = $i;
 				break;
 			} else if ($quoting && $c === '\'') {
-				$index = $i;
+				$index = $i + 1;
 				break;
 			} else if ($quoting && $c === $quote) {
-				$index = $i;
+				$index = $i + 1;
 				break;
 			}
 
