@@ -38,7 +38,19 @@ class VariableNode extends AbstractNode {
 			$context->addSql('\'' . $value . '\'');
 		} else {
 			$value = $context->getArg($this->expression);
-			$context->addSql($value);
+			if (is_array($value)) {
+				if (mb_strpos($this->testValue, '\'') !== false) {
+					$glue = '\',\'';
+					$inClause = implode($glue, $value);
+					$inClause = "'{$inClause}'";
+				} else {
+					$glue = ',';
+					$inClause = implode($glue, $value);
+				}
+				$context->addSql("({$inClause})");
+			} else {
+				$context->addSql($value);
+			}
 		}
 	}
 }

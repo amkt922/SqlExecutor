@@ -75,7 +75,6 @@ class IfCommentEvaluator {
 	}
 
 	private function evaluateClause($clause) {
-		$pattern = null;
 		if (mb_strpos($clause, self::EQUAL_OPE) != false) {
 			list($left, $right) = $this->leftRightClause(self::EQUAL_OPE, $clause);
 			$leftValue = $this->parameterFinder->getParameter($left);

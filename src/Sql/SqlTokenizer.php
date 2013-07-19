@@ -152,7 +152,7 @@ class SqlTokenizer {
         for ($i = $quoting ? $this->position + 1 
 				: $this->position; $i < mb_strlen($this->sql); ++$i) {
 			$c = $sqlArray[$i];
-			if ($c === ' ') {
+			if (!$quoting && ($c === ' ' || $c === ',' || $c === ')' || $c === '(')) {
 				$index = $i;
 				break;
 			} else if ($c === '/' && $sqlArray[$i + 1] === '*') {
@@ -161,10 +161,10 @@ class SqlTokenizer {
 			} else if ($c === '-' && $sqlArray[$i + 1] === '-') {
 				$index = $i;
 				break;
-			} else if ($quoting && $c === '\'') {
+			} else if ($quoting && $quote === '\'' && $c === '\'') {
 				$index = $i + 1;
 				break;
-			} else if ($quoting && $c === $quote) {
+			} else if ($quoting && $quote === ')' && $c === $quote) {
 				$index = $i + 1;
 				break;
 			}

@@ -51,11 +51,15 @@ SELECT *
 	/*BEGIN*/ where 
 		/*IF a > 3000 && a < 4000*/ a = /*a*/1/*END*/ 
 		/*IF b != null*/ and b = /*b*/b/*END*/ 
+		/*IF c != null*/ and c in /*c*/('a', 'b', 'c')/*END*/ 
+		/*IF d != null*/ and d in /*d*/(1, 2, 3)/*END*/ 
 	/*END*/
 SQL;
 		$an = new SqlAnalyzer($sql);
 		$node = $an->analyze();
-		$param = array('paging' => false, 'a' => 3999, 'b' => 'hoge');
+		$param = array('paging' => false, 'a' => 4999
+						, 'b' => 'hoge', 'c' => array('x', 'y')
+						, 'd' => array(1,10,1000));
 		$context = Context\CommandContext::createCommandContext($param);
 		$node->acceptContext($context);
 		echo $context->getSql();
