@@ -35,7 +35,6 @@ class SqlConnectorNode extends AbstractNode {
 
 	public static function createSqlConnectorNode($connector, $sql) {
 		return new self($connector, $sql);	
-
 	}
 
 	public static function createSqlConnectorNodeAsIndependent($connector, $sql) {
@@ -58,6 +57,9 @@ class SqlConnectorNode extends AbstractNode {
 	}
 
 	public function acceptContext($context) {
+		if ($context->isEnabled()) {
+			$context->addSql($this->connector);
+		}
 		$context->addSql($this->sql);		
 	}
 }

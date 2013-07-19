@@ -88,7 +88,7 @@ class CommandContext {
 		$this->enabled = $enabled;
 	}
 
-	public function getEnabled() {
+	public function isEnabled() {
 		return $this->enabled;
 	}
 }

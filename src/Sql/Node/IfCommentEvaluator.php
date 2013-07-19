@@ -21,8 +21,19 @@ namespace SqlExecutor\Sql\Node;
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 
  */
 class IfCommentEvaluator {
-    
-    
+
+	const AND_OPE = " && ";
+	const AND_OPE_EN = " and ";
+	const OR_OPE = " || ";
+	const OR_OPE_EN = " or ";
+	const EQUAL_OPE = " == ";
+	const GRATER_THAN_OPE = " > ";
+	const LESS_THAN_OPE = " < ";
+	const GREATER_EQUAL_OPE = " >= ";
+	const LESS_EQUAL_OPE = " <= ";
+	const NOT_EQUAL_OPE = " != ";
+	const NOT_OPE = "!";
+	   
     private $condition = null;
     
     private $sql = null;
@@ -36,11 +47,91 @@ class IfCommentEvaluator {
     }
 
 	public function evaluate() {
-		// todo AND, OR
-		$values = split('=', $this->condition);
-		$parameterValue = $this->parameterFinder->getParameter($values[0]);
-		$v = is_numeric(trim($values[1])) ? (int)trim($values[1]) : $values[1];
-		return $parameterValue === $v;
+		if (strpos($this->condition, self::AND_OPE) !== false
+				|| strpos($this->condition, self::AND_OPE_EN) !== false) {
+			$this->condition = str_replace(self::AND_OPE_EN, self::AND_OPE, $this->condition);
+			$clauses = mb_split(self::AND_OPE, $this->condition);
+			foreach ($clauses as $clause) {
+				$result = $this->evaluateClause($clause);
+				if (!$result) {
+					return false;
+				}
+			}
+			return true;
+		} else if (strpos($this->condition, self::OR_OPE) !== false
+					|| strpos($this->condition, self::OR_OPE_EN) !== false) {
+			$this->condition = str_replace(self::OR_OPE_EN, self::OR_OPE, $this->condition);
+			$clauses = mb_split(self::OR_OPE, $this->condition);
+			foreach ($clauses as $clause) {
+				$result = $this->evaluateClause($clause);
+				if ($result) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			return $this->evaluateClause($this->condition);
+		}
+	}
+
+	private function evaluateClause($clause) {
+		$pattern = null;
+		if (mb_strpos($clause, self::EQUAL_OPE) != false) {
+			list($left, $right) = $this->leftRightClause(self::EQUAL_OPE, $clause);
+			$leftValue = $this->parameterFinder->getParameter($left);
+			$rightValue = $this->castIfNumeric($right);
+			$rightValue = $this->convertNullIfNull($rightValue);
+			return $leftValue === $rightValue;
+		} else if (mb_strpos($clause, self::GRATER_THAN_OPE) != false) {
+			list($left, $right) = $this->leftRightClause(self::GRATER_THAN_OPE, $clause);
+			$leftValue = $this->parameterFinder->getParameter($left);
+			$rightValue = $this->castIfNumeric($right);
+			return $leftValue > $rightValue;
+		} else if (mb_strpos($clause, self::GREATER_EQUAL_OPE) != false) {
+			list($left, $right) = $this->leftRightClause(self::GREATER_EQUAL_OPE, $clause);
+			$leftValue = $this->parameterFinder->getParameter($left);
+			$rightValue = $this->castIfNumeric($right);
+			return $leftValue >= $rightValue;
+		} else if (mb_strpos($clause, self::LESS_EQUAL_OPE) != false) {
+			list($left, $right) = $this->leftRightClause(self::LESS_EQUAL_OPE, $clause);
+			$leftValue = $this->parameterFinder->getParameter($left);
+			$rightValue = $this->castIfNumeric($right);
+			return $leftValue <= $rightValue;
+		} else if (mb_strpos($clause, self::LESS_THAN_OPE) != false) {
+			list($left, $right) = $this->leftRightClause(self::LESS_THAN_OPE, $clause);
+			$leftValue = $this->parameterFinder->getParameter($left);
+			$rightValue = $this->castIfNumeric($right);
+			return $leftValue < $rightValue;
+		} else if (mb_strpos($clause, self::NOT_EQUAL_OPE) != false) {
+			list($left, $right) = $this->leftRightClause(self::NOT_EQUAL_OPE, $clause);
+			$leftValue = $this->parameterFinder->getParameter($left);
+			$rightValue = $this->castIfNumeric($right);
+			$rightValue = $this->convertNullIfNull($rightValue);
+			return $leftValue != $rightValue;
+		} else {
+		}
+	}
+
+	private function leftRightClause($operand, $clause) {
+		return  mb_split($operand, $clause);
+	}
+
+	private function convertNullIfNull($value) {
+		if ($value === 'null') {
+			return null;
+		}
+		return $value;
+	}
+
+	private function castIfNumeric($value) {
+		if (is_numeric($value)) {
+			$value = (int)$value;	
+		} else if (is_float($value)) {
+			$value = (float)$value;	
+		} else if (is_double($value)) {
+			$value = (double)$value;	
+		}
+		return $value;
 	}
 }
 
