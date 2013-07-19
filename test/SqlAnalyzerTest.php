@@ -34,7 +34,28 @@ SELECT * from user /*BEGIN*/ where /*IF a > 3000 && a < 4000*/ a = /*a*/1/*END*/
 SQL;
 		$an = new SqlAnalyzer($sql);
 		$node = $an->analyze();
-		$param = array('a' => 4999, 'b' => 'hoge');
+		$param = array();
+		//$param = array('a' => 4999, 'b' => 'hoge');
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
+		//echo $context->getSql();
+	}
+
+   public function testAnalyze2() {
+		$sql = <<<SQL
+/*IF paging*/
+SELECT * 
+-- ELSE select count(*)
+/*END*/
+	from user
+	/*BEGIN*/ where 
+		/*IF a > 3000 && a < 4000*/ a = /*a*/1/*END*/ 
+		/*IF b != null*/ and b = /*b*/b/*END*/ 
+	/*END*/
+SQL;
+		$an = new SqlAnalyzer($sql);
+		$node = $an->analyze();
+		$param = array('paging' => false, 'a' => 3999, 'b' => 'hoge');
 		$context = Context\CommandContext::createCommandContext($param);
 		$node->acceptContext($context);
 		echo $context->getSql();

@@ -109,6 +109,11 @@ class IfCommentEvaluator {
 			$rightValue = $this->convertNullIfNull($rightValue);
 			return $leftValue != $rightValue;
 		} else {
+			$value = $this->parameterFinder->getParameter($clause);
+			if (is_bool($value)) {
+				return (bool)$value;
+			}
+			return false;
 		}
 	}
 

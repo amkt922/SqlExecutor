@@ -20,6 +20,8 @@ namespace SqlExecutor\Sql;
 
 use SqlExecutor\Sql\SqlTokenizer;
 use SqlExecutor\Sql\Node\RootNode;
+use SqlExecutor\Sql\Node\IfNode;
+use SqlExecutor\Sql\Node\ElseNode;
 
 /**
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 
@@ -64,8 +66,10 @@ class SqlAnalyzer {
             $this->parseComment();
             break;
         case SqlTokenizer::EL:
-            //parseElse();
+            $this->parseElse();
             break;
+		default:
+			break;
        }
 	}
 
@@ -181,6 +185,18 @@ class SqlAnalyzer {
 
 	protected function isEndComment($comment) {
 		return 'END' === $comment;
+	}
+
+	protected function parseElse() {
+		$parent = $this->peekNodeStack();
+		if (!($parent instanceof IfNode)) {
+			return;
+		}
+		$ifNode = array_pop($this->nodeStack);
+		$elseNode = new ElseNode();
+		$ifNode->setElseNode($elseNode);
+		array_push($this->nodeStack, $elseNode);	
+		$this->tokenizer->skipWhitespace();
 	}
 
 	protected function parseEnd() {
