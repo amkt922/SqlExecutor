@@ -71,7 +71,17 @@ class CommandContext {
 
 	public function getArg($name) {
 		$name = trim($name);
-		if (array_key_exists($name, $this->args)) {
+		if (($dotpos = mb_strpos($name, '.')) !== false) {
+			$name = mb_substr($name, $dotpos + 1);
+		}
+		if (is_object($this->args)) {
+			if (mb_strpos($name, '()') !== false) {
+				$method = $name;
+			} else {
+				$method = "get" . strtoupper(mb_substr($name,0,1)) . mb_substr($name, 1) . "()";
+			}
+			$this->args->$method;
+		} else if (array_key_exists($name, $this->args)) {
 			return $this->args[$name];
 		}
 		return null;

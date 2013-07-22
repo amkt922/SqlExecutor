@@ -9,31 +9,45 @@ require_once dirname(dirname(__FILE__)) . "/src/SqlExecutor.php";
  */
 class SqlExecutorTest extends \PHPUnit_Framework_TestCase {
 
-    /**
-     * @var SqlExecutor
-     */
-    protected $object;
+	/**
+	 * @var SqlExecutor
+	 */
+	protected $object;
+	protected $pdo;
 
-    /**
-     * Sets up the fixture, for example, opens a network connection.
-     * This method is called before a test is executed.
-     */
-    protected function setUp() {
-    }
+	/**
+	 * Sets up the fixture, for example, opens a network connection.
+	 * This method is called before a test is executed.
+	 */
+	protected function setUp() {
+	}
 
-    /**
-     * Tears down the fixture, for example, closes a network connection.
-     * This method is called after a test is executed.
-     */
-    protected function tearDown() {
-        
-    }
+	/**
+	 * Tears down the fixture, for example, closes a network connection.
+	 * This method is called after a test is executed.
+	 */
+	protected function tearDown() {
+		
+	}
 
-    /**
-     * @covers SqlExecutor\SqlExecutor::from
-     * @todo   Implement testFrom().
-     */
-    public function testFrom() {
-    }
+	/**
+	 * @covers SqlExecutor\SqlExecutor::from
+	 * @todo   Implement testFrom().
+	 */
+	public function test1() {
+		$users = SqlExecutor::getExecutor(array('database' => array('dsn' => 'sqlite:./db/testdb.sqlite3'), 'sqlDir' => './sql/'))
+			->selectList('selectUser', array());		
+		$this->assertSame(count($users), 3);
+	}
+
+	/**
+	 * @covers SqlExecutor\SqlExecutor::from
+	 * @todo   Implement testFrom().
+	 */
+	public function test2() {
+		$users = SqlExecutor::getExecutor(array('database' => array('dsn' => 'sqlite:./db/testdb.sqlite3'), 'sqlDir' => './sql/'))
+			->selectList('selectUser', array('id' => 3));		
+		$this->assertSame($users[0]->name, 'takahashi');
+	}
 
 }

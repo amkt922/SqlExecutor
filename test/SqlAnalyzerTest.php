@@ -62,6 +62,29 @@ SQL;
 						, 'd' => array(1,10,1000));
 		$context = Context\CommandContext::createCommandContext($param);
 		$node->acceptContext($context);
+		//echo $context->getSql();
+	}
+
+   public function testAnalyze3() {
+		$sql = <<<SQL
+/*IF pmb.isPaging()*/
+SELECT * 
+-- ELSE select count(*)
+/*END*/
+	from user
+SQL;
+		$an = new SqlAnalyzer($sql);
+		$node = $an->analyze();
+		$param = new Param();
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
 		echo $context->getSql();
+	}
+}
+
+class Param {
+
+	public function isPaging() {
+		return true;
 	}
 }
