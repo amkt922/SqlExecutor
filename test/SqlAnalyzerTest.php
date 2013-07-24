@@ -9,7 +9,6 @@ require_once dirname(dirname(__FILE__)) . "/src/SqlExecutor.php";
 class SqlAnalyzerTest extends \PHPUnit_Framework_TestCase {
 
     /**
-     * @var DbAccessor
      */
     protected $object;
 
@@ -30,7 +29,9 @@ class SqlAnalyzerTest extends \PHPUnit_Framework_TestCase {
   
    public function testAnalyze() {
 		$sql = <<<SQL
-SELECT * from user /*BEGIN*/ where /*IF a > 3000 && a < 4000*/ a = /*a*/1/*END*/ /*IF b != null*/ and b = /*b*/b/*END*/ /*END*/
+/*BEGIN*/ where 
+	/*IF a != null*/ a = /*a*/1/*END*/ 
+/*END*/
 SQL;
 		$an = new SqlAnalyzer($sql);
 		$node = $an->analyze();

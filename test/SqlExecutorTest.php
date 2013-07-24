@@ -47,7 +47,20 @@ class SqlExecutorTest extends \PHPUnit_Framework_TestCase {
 	public function test2() {
 		$users = SqlExecutor::getExecutor(array('database' => array('dsn' => 'sqlite:./db/testdb.sqlite3'), 'sqlDir' => './sql/'))
 			->selectList('selectUser', array('id' => 3));		
-		$this->assertSame($users[0]->name, 'takahashi');
+		$this->assertSame($users[0]['name'], 'takahashi');
 	}
 
+	public function test3() {
+		$users = SqlExecutor::getExecutor(array('database' => array('dsn' => 'sqlite:./db/testdb.sqlite3'), 'sqlDir' => './sql/'))
+			->selectList('selectUser', array('id' => 2), get_class(new User()));		
+		$this->assertSame($users[0]->id, 2);
+		$this->assertSame($users[0]->name, 'suzuki');
+	}
+
+}
+
+class User {
+	public $id;
+
+	public $name;
 }

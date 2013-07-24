@@ -76,7 +76,7 @@ class SqlExecutor {
 		}
     }
 
-	public function setupSql($sql, $params) {
+	private function setupSql($sql, $params) {
 		$this->setupPDO();
 		$rowSql = file_get_contents($this->sqlDir . $sql . '.sql');
 		$analyzer = new \SqlExecutor\Sql\SqlAnalyzer($rowSql);
@@ -96,7 +96,19 @@ class SqlExecutor {
 	public function selectList($sql, $params, $entity = null) {
 		$sql = $this->setupSql($sql, $params);
 		$stmt = $this->pdo->query($sql);
-		return $stmt->fetchAll(\PDO::FETCH_CLASS);
+		if (!is_null($entity)) {
+			$return = array();
+			while( $data = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+				$elem = new $entity();
+				foreach (array_keys($data) as $key) {
+					$elem->$key = $data[$key];
+				}
+				array_push($return, $elem);
+			}
+			return $return;
+		} else {
+			return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+		}
 	}
 }
 

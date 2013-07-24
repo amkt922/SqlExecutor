@@ -76,11 +76,11 @@ class CommandContext {
 		}
 		if (is_object($this->args)) {
 			if (mb_strpos($name, '()') !== false) {
-				$method = $name;
+				$method = mb_substr($name, 0, mb_strlen($name) - 2);
 			} else {
-				$method = "get" . strtoupper(mb_substr($name,0,1)) . mb_substr($name, 1) . "()";
+				$method = "get" . strtoupper(mb_substr($name,0,1)) . mb_substr($name, 1);
 			}
-			$this->args->$method;
+			$this->args->$method();
 		} else if (array_key_exists($name, $this->args)) {
 			return $this->args[$name];
 		}

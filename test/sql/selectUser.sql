@@ -1,5 +1,6 @@
 select 
-	name
+	id
+	, name
 	from user
 	/*BEGIN*/
 	where 
