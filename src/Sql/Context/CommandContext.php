@@ -33,6 +33,10 @@ class CommandContext {
 
 	private $enabled = true;
 
+	private $bindVariables = array();
+
+	private $bindVariableTypes = array();
+
 	public static function createCommandContext($args) {
 		return new CommandContext($args, null);
 	}
@@ -52,8 +56,35 @@ class CommandContext {
 		}
 	}
 
-	public function addSql($sql = '') {
+	public function addSql($sql = '', $bindVariable = null, $bindVariableType = null) {
 		$this->sql .= $sql;
+		if (!empty($bindVariable)) {
+			if (is_array($bindVariable)) {
+				foreach ($bindVariable as $v) {
+					array_push($this->bindVariables, $v);
+					array_push($this->bindVariableTypes, $bindVariableType);
+				}	
+			} else {
+				array_push($this->bindVariables, $bindVariable);
+				array_push($this->bindVariableTypes, $bindVariableType);
+			}
+		}
+	}
+
+	public function addBindVariables($bindVariables) {
+		array_push($this->bindVariables, $bindVariables);
+	}
+
+	public function addBindVariableTypes($bindVariableType) {
+		array_push($this->bindVariableTypes, $bindVariableType);
+	}
+
+	public function getBindVariables() {
+		return $this->bindVariables;
+	}
+
+	public function getBindVariableTypes() {
+		return $this->bindVariableTypes;
 	}
 
 	public function getSql() {

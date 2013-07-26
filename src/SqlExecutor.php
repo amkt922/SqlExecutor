@@ -76,16 +76,15 @@ class SqlExecutor {
 		}
     }
 
-	private function setupSql($sql, $params) {
+	private function getCommandContext($sql, $params) {
 		$this->setupPDO();
 		$rowSql = file_get_contents($this->sqlDir . $sql . '.sql');
 		$analyzer = new \SqlExecutor\Sql\SqlAnalyzer($rowSql);
 		$node = $analyzer->analyze();
 		$context = CommandContext::createCommandContext($params);
 		$node->acceptContext($context);
-		return $context->getSql();
+		return $context;
 	}
-
 
 	private function setupPDO() {
         if (is_null($this->pdo)) {
@@ -93,22 +92,44 @@ class SqlExecutor {
         }
     }
 
-	public function selectList($sql, $params, $entity = null) {
-		$sql = $this->setupSql($sql, $params);
-		$stmt = $this->pdo->query($sql);
-		if (!is_null($entity)) {
-			$return = array();
-			while( $data = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-				$elem = new $entity();
-				foreach (array_keys($data) as $key) {
-					$elem->$key = $data[$key];
-				}
-				array_push($return, $elem);
-			}
-			return $return;
+	private function prepareAndBindVariable($context) {
+		$stmt = $this->pdo->prepare($context->getSql());
+		$bindVariables = $context->getBindVariables();
+		foreach ($bindVariables as $index => $value) {
+			$stmt->bindValue($index + 1, $value);
+		}
+		return $stmt;
+	}
+
+	public function selectList($sql, $params, $entityName = null) {
+		$context = $this->getCommandContext($sql, $params);
+		$stmt = $this->prepareAndBindVariable($context);
+		$stmt->execute();
+		if (!is_null($entityName)) {
+			return $stmt->fetchAll(\PDO::FETCH_CLASS, $entityName);
 		} else {
 			return $stmt->fetchAll(\PDO::FETCH_ASSOC);
 		}
+	}
+
+	public function selectEntity($sql, $params, $entityName = null) {
+		$sql = $this->setupSql($sql, $params);
+		$stmt = $this->pdo->query($sql);
+		$result = null;
+		if (!is_null($entityName)) {
+			$result = $stmt->fetchAll(\PDO::FETCH_CLASS, $entityName);
+		} else {
+			$result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+		}
+		if(!empty($result)) {
+			return $result[0];
+		}
+		return null;
+	}
+
+	public function execute($sql, $params) {
+		$sql = $this->setupSql($sql, $params);
+		return $this->pdo->exec($sql);
 	}
 }
 

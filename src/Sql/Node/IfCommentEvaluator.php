@@ -80,6 +80,7 @@ class IfCommentEvaluator {
 			$leftValue = $this->parameterFinder->getParameter($left);
 			$rightValue = $this->castIfNumeric($right);
 			$rightValue = $this->convertNullIfNull($rightValue);
+			$rightValue = $this->convertTrueOfFalseIfBool($rightValue);
 			return $leftValue === $rightValue;
 		} else if (mb_strpos($clause, self::GRATER_THAN_OPE) != false) {
 			list($left, $right) = $this->leftRightClause(self::GRATER_THAN_OPE, $clause);
@@ -108,11 +109,13 @@ class IfCommentEvaluator {
 			$rightValue = $this->convertNullIfNull($rightValue);
 			return $leftValue != $rightValue;
 		} else {
-			$value = $this->parameterFinder->getParameter($clause);
-			if (is_bool($value)) {
-				return (bool)$value;
+			if (mb_strpos($clause, self::NOT_OPE) === 0) {
+				$clause = mb_substr($clause, 1);
+				$value = $this->parameterFinder->getParameter($clause);
+				return $value ? false : true;
+			} else {
+				return (bool)$this->parameterFinder->getParameter($clause);
 			}
-			return false;
 		}
 	}
 
@@ -125,6 +128,16 @@ class IfCommentEvaluator {
 			return null;
 		}
 		return $value;
+	}
+
+	private function convertTrueOfFalseIfBool($value) {
+		if ($value === 'true') {
+			return true;
+		} else if ($value === 'false') {
+			return false;
+		} else {
+			return $value;
+		}
 	}
 
 	private function castIfNumeric($value) {

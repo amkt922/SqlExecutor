@@ -42,6 +42,8 @@ class BeginNode extends ScopeNode implements SqlConnectorAdjustable {
 		$this->processAcceptingChilden($childContext);
 		if ($childContext->isEnabled()) {
 			$context->addSql($childContext->getSql());	
+			$context->addBindVariables($childContext->getBindVariables());	
+			$context->addBindVariableTypes($childContext->getBindVariableTypes());	
 		}		
 	}
 	

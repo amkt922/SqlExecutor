@@ -17,25 +17,30 @@
 
 namespace SqlExecutor\Sql\Node;
 
-use SqlExecutor\Sql\Node\AbstractNode;
+use SqlExecutor\Sql\Node\VariableNode;
 /**
  * @author reimplement in PHP and modified by amkt <amkt922@gmail.com> (originated in Java in dbflute) 
  */
-abstract class VariableNode extends AbstractNode {
+class BindVariableNode extends VariableNode {
     
-    protected  $expression = null;
-    protected  $testValue = null;
-    
-    public function __construct($expression, $testValue) {
-		$this->expression = $expression;
-		$this->testValue = $testValue;
-    }
-
-	public function acceptContext($context) {
-		$this->doAcceptContext($context);
+	public function doAcceptContext($context) {
+		if (mb_strpos($this->testValue, '\'') === 0) {
+			$value = $context->getArg($this->expression);
+			$context->addSql('?', $value, 'string');
+		} else {
+			$value = $context->getArg($this->expression);
+			if (is_array($value)) {
+				$questionValues = array_fill(0, count($value), '?');
+				$inClause = implode(',', $questionValues);
+				$type = 'integer';
+				if (mb_strpos($this->testValue, '\'') !== false) {
+					$type = 'string';
+				}
+				$context->addSql("({$inClause})", $value, $type);
+			} else {
+				$context->addSql('?', $value, gettype($value));
+			}
+		}
 	}
-
-	abstract public function doAcceptContext($context);
-
 }
 
