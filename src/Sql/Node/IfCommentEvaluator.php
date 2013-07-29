@@ -33,6 +33,7 @@ class IfCommentEvaluator {
 	const LESS_EQUAL_OPE = " <= ";
 	const NOT_EQUAL_OPE = " != ";
 	const NOT_OPE = "!";
+	const METHOD_SUFFIX_FIRST = "(";
 	   
     private $condition = null;
     
@@ -109,7 +110,9 @@ class IfCommentEvaluator {
 			$rightValue = $this->convertNullIfNull($rightValue);
 			return $leftValue != $rightValue;
 		} else {
-			if (mb_strpos($clause, self::NOT_OPE) === 0) {
+			if (mb_strpos($clause, self::METHOD_SUFFIX_FIRST) != false) {
+				return $this->parameterFinder->getParameter($clause);
+			} else if (mb_strpos($clause, self::NOT_OPE) === 0) {
 				$clause = mb_substr($clause, 1);
 				$value = $this->parameterFinder->getParameter($clause);
 				return $value ? false : true;

@@ -106,12 +106,18 @@ class CommandContext {
 			$name = mb_substr($name, $dotpos + 1);
 		}
 		if (is_object($this->args)) {
-			if (mb_strpos($name, '()') !== false) {
-				$method = mb_substr($name, 0, mb_strlen($name) - 2);
+			if (($pos = mb_strpos($name, '(')) !== false) {
+				$method = mb_substr($name, 0, $pos);
+				$methodParam = mb_substr($name, $pos + 1);
+				$methodParam = mb_substr($methodParam, 0, mb_strlen($methodParam) - 1);
+				if (mb_strpos($methodParam, '\'') === false) {
+					$methodParam = (int)$methodParam;
+				}
 			} else {
+				$methodParam = null;
 				$method = "get" . strtoupper(mb_substr($name,0,1)) . mb_substr($name, 1);
 			}
-			$this->args->$method();
+			return $this->args->$method($methodParam);
 		} else if (array_key_exists($name, $this->args)) {
 			return $this->args[$name];
 		}

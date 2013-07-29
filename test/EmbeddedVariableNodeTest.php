@@ -116,5 +116,28 @@ class EmbeddedVariableNodeTest extends \PHPUnit_Framework_TestCase {
 		$this->assertSame("from hogedev.tableName", $testSql);	
    }
 
+   public function test9() {
+		$sql = "order by hoge /*@a*/asc";
+		$an = new SqlAnalyzer($sql);
+		$node = $an->analyze();
+		$param = array('a' => 'desc');
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
+		echo $testSql = $context->getSql();
+		$this->assertSame("order by hoge desc", $testSql);	
+   }
+
+   public function test10() {
+		$sql = "limit /*@a*/10, /*@b*/100";
+		$an = new SqlAnalyzer($sql);
+		$node = $an->analyze();
+		$param = array('a' => 100, 'b' => 1000);
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
+		echo $testSql = $context->getSql();
+		$this->assertSame("limit 100, 1000", $testSql);	
+   }
+
+
 }
 

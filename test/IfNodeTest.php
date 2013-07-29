@@ -246,5 +246,61 @@ class IfNodeTest extends \PHPUnit_Framework_TestCase {
 		$this->assertSame("a = false", $testSql);	
    }
 
+   public function test21() {
+		$sql = "/*IF a.isPaging(1)*/b = /*@b*/100/*END*/";
+		$an = new SqlAnalyzer($sql);
+		$node = $an->analyze();
+		$param = new Pmb();
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
+		echo $testSql = $context->getSql();
+		$this->assertSame("b = 300", $testSql);	
+   }
+   
+   public function test22() {
+		$sql = "/*IF a.isPaging(100)*/b = /*@b*/100/*END*/";
+		$an = new SqlAnalyzer($sql);
+		$node = $an->analyze();
+		$param = new Pmb();
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
+		echo $testSql = $context->getSql();
+		$this->assertSame(null, $testSql);	
+   }
+
+   public function test23() {
+		$sql = "/*IF a.isPaging('hoge')*/b = /*@b*/100/*END*/";
+		$an = new SqlAnalyzer($sql);
+		$node = $an->analyze();
+		$param = new Pmb();
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
+		echo $testSql = $context->getSql();
+		$this->assertSame('b = 300', $testSql);	
+   }
+
+   public function test24() {
+		$sql = "/*IF a.isPaging('foo')*/b = /*@b*/100/*END*/";
+		$an = new SqlAnalyzer($sql);
+		$node = $an->analyze();
+		$param = new Pmb();
+		$context = Context\CommandContext::createCommandContext($param);
+		$node->acceptContext($context);
+		echo $testSql = $context->getSql();
+		$this->assertSame(null, $testSql);	
+   }
+
+}
+
+class Pmb {
+	public function isPaging($param) {
+		if ($param === 1 || $param === 'hoge') {
+			return true;
+		}
+		return false;
+	}
+	public function getB() {
+		return 300;
+	}
 }
 
